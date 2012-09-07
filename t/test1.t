@@ -22,7 +22,7 @@ $preprocessor->setOption("doStopwordsEnglish", 0);
 $preprocessor->setOption("doStopwordsKeywords", 1);
 $preprocessor->setOption("doStopwordsCustom", 0);
 $preprocessor->setOption("doStopPhrases", 0);
-$preprocessor->setOption("doEmailReply", 0);
+$preprocessor->setOption("doEmail", 0);
 
 $preprocessor->preprocess();
 

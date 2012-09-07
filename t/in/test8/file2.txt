@@ -1,0 +1,10 @@
+On 8/29/07, Alvaro Herrera <alvherre@commandprompt.com> wrote:
+> Scott Marlowe escribió:
+>
+> > Could the contrib README files couldn't be generated from the same
+> > source as the docs (i.e. sgml) and then put into the appropriate
+> > contrib/module/ directory.
+>
+> Sure they can.  We already do that for INSTALL for example.
+
+OK, s/Could/May/ up there.  :)

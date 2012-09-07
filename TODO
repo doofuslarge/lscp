@@ -1,0 +1,14 @@
+
+FEATURE ENHANCEMENTS
+
+- Decouple string literals from identifiers
+- Allow option for acronyms to be preserved (i.e, not stemmed)
+- Allow option identifier names to be preserved (i.e, not stemmed)
+- Much better email handling
+- Spell check and correction?
+- Better statistics on word output
+- Allow pruning of rare and common words
+- Detect and handle contractions (isn't, it's, didn't) better.
+- Split up keyword stopwords by programming language, and auto-detect which to
+  use
+

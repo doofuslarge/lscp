@@ -1,0 +1,14 @@
+After failing to make Itanium competitive, Intel is now downplaying
+64-bit CPU's.  Of course, they didn't think that until Itanium failed. 
+Here is the slashdot story:
+
+
+	http://slashdot.org/article.pl?sid=03/02/23/2050237&mode=nested&tid=118
+
+Seems AMD's hammer is going to be the popular 64-bit desktop CPU.
+
+-- 
+  Bruce Momjian                        |  http://candle.pha.pa.us
+  pgman@candle.pha.pa.us               |  (610) 359-1001
+  +  If your life is a hard drive,     |  13 Roberts Road
+  +  Christ can be your backup.        |  Newtown Square, Pennsylvania 19073
