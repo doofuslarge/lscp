@@ -16,14 +16,10 @@ $preprocessor->setOption("outPath", "t/out/test6");
 
 $preprocessor->setOption("numberOfThreads", 2);
 $preprocessor->setOption("isCode", 1);
-$preprocessor->setOption("doTokenize", 0);
-$preprocessor->setOption("doStemming", 0);
 $preprocessor->setOption("doLowerCase", 1);
-$preprocessor->setOption("doStopwordsEnglish", 0);
+$preprocessor->setOption("doRemoveDigits", 1);
+$preprocessor->setOption("doRemovePunctuation", 1);
 $preprocessor->setOption("doStopwordsKeywords", 1);
-$preprocessor->setOption("doStopwordsCustom", 0);
-$preprocessor->setOption("doStopPhrases", 0);
-$preprocessor->setOption("doEmail", 0);
 
 $preprocessor->preprocess();
 

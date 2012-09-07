@@ -12,13 +12,13 @@ use POSIX qw/ceil/;
 use threads;
 use threads::shared;
 use Log::Log4perl qw(:easy);
+use Regexp::Common qw /comment/;
 
 require Exporter;
 use AutoLoader qw(AUTOLOAD);
 our @ISA = qw(Exporter);
 our @EXPORT_OK = ( );
 our $VERSION = '0.01';
-
 
 ## Global Package Variables
 
@@ -69,19 +69,25 @@ sub new{
     $options{"doIdentifiers"}       = 1;
     $options{"doComments"}          = 1;
 
-    $options{"doRemoveDigits"}      = 1;
-    $options{"doLowerCase"}         = 1;
-    $options{"doStemming"}          = 1;
-    $options{"doTokenize"}          = 1;
+    $options{"doRemoveDigits"}      = 0;
+    $options{"doLowerCase"}         = 0;
+    $options{"doStemming"}          = 0;
+    $options{"doTokenize"}          = 0;
+    $options{"doRemovePunctuation"} = 0;
     $options{"doRemoveSmallWords"}  = 0;
     $options{"smallWordSize"}       = 1;
 
-    $options{"doStopwordsEnglish"}  = 1;
-    $options{"doStopwordsKeywords"} = 1;
+    $options{"doStopwordsEnglish"}  = 0;
+    $options{"doStopwordsKeywords"} = 0;
     $options{"doStopwordsCustom"}   = 0;
     $options{"ref_stopwordsCustom"} = 0;
 
-    $options{"doEmail"}             = 0;
+    $options{"doRemoveEmailAddresses"}   = 0;
+    $options{"doRemoveEmailSignatures"}  = 0;
+    $options{"doRemoveURLs"}             = 0;
+    $options{"doRemoveWroteLines"}       = 0;
+    $options{"doRemoveQuotedEmails"}     = 0;
+    $options{"doRemoveEmailHeaders"}     = 0;
 
     # Define and build hash tables of stopwords, for speed later
     buildStopwordTables();
@@ -196,16 +202,16 @@ sub preprocess{
     # Output log file, if we want
     if ($options{"doOutputLogFile"} == 1){
     
-        # TODO
         $logger->info("Writing info file.\n");
-        open (INFO, ">$options{\"logFilePath\"}") or die "$0: Error: unable to open \"$options{\"logFilePath\"}\": $!";
+        my $outFileName = $options{"logFilePath"};
+        open (LOG, ">$outFileName") or die "Error: unable to open log file";
         my @sort = sort(@all_info);
         my $j = 0;
         foreach my $infoString (@sort){
-            print INFO "$j, $infoString\n";
+            print LOG "$j, $infoString";
             ++$j;
         }
-        close (INFO);
+        close (LOG);
     }
 }
 
@@ -262,21 +268,19 @@ sub worker{
 
 
         #Output the document (use slurp for speed)
-        $words = join("\n", split(/ /,$words));
+        $words = join("\n", split(/\s+/,$words));
         chomp $words;
         write_file($outPath, "$words\n");
 
         # Output some info on the document.
-        # TODO: make this more general
-        my $versionDate = getVersionDate($fileFull);
-        my $packageName = getPackageName($fileFull);
-        my $longName    = getLongName($fileFull);
-        my $shortName   = getShortName($fileFull);
+        # DEPRECATED
+        #my $versionDate = getVersionDate($fileFull);
+        #my $packageName = getPackageName($fileFull);
+        #my $longName    = getLongName($fileFull);
+        #my $shortName   = getShortName($fileFull);
 
         # Write to log file
-        my $infoString = "$versionDate, $fileBase, $packageName, $longName, 
-                $shortName, $numWordsFinal, $numComments, $numIdentifiers, 
-                $numStopwordsRemoved, $numSmallWordsRemoved";
+        my $infoString = "$fileFull, $numWordsFinal, $numComments, $numIdentifiers, $numStopwordsRemoved, $numSmallWordsRemoved\n";
 
         push @info, $infoString;
 
@@ -310,20 +314,12 @@ sub extractWords{
     my $numStopwordsRemoved         = 0;
     my $numSmallWordsRemoved        = 0;
 
-    # Useful to preprocessing non-source code files, like bug reports or emails
+    # If we're not doing code, just grab all the words.
     if ($options{"isCode"} == 0){
         $words = read_file($inFilePath) ;
-        if ($options{"doEmail"} == 1){
-            $words = removeEmailNoise($words);
-            $words = removeDuplicateSpaces($words);
-        }
-        $words = removePunctuation($words);
-        $words = removeDigits($words);
-        # NOTE: Stopwords will be removed later, in common code
 
-    # If we're preprocessing source code
+    # If we are doing code, just grab identifiers and/or comments
     } else {
-    
         if ($options{"doIdentifiers"} == 1){
             ($numIdentifiers, my $newWords) = getIdentifiers($inFilePath);
             $words = "$words $newWords";
@@ -334,15 +330,43 @@ sub extractWords{
             $words = "$words $newWords";
         }
     }
-    
-    if ($options{"doRemoveDigits"} == 1){
-        $words = removeDigits($words);
+
+    if ($options{"doRemoveEmailAddresses"} == 1){
+        $words = removeEmailAddresses($words);
+    }
+
+    if ($options{"doRemoveEmailSignatures"} == 1){
+        $words = removeEmailSignatures($words);
+    }
+
+    if ($options{"doRemoveURLs"} == 1){
+        $words = removeURLs($words);
+    }
+
+    if ($options{"doRemoveWroteLines"} == 1){
+        $words = removeWroteLines($words);
+    }
+
+    if ($options{"doRemoveQuotedEmails"} == 1){
+        $words = removeQuotedEmails($words);
+    }
+
+    if ($options{"doRemoveEmailHeaders"} == 1){
+        $words = removeRemoveEmailHaders($words);
+    }
+
+    if ($options{"doRemovePunctuation"} == 1){
+        $words = removePunctuation($words);
     }
 
     if ($options{"doTokenize"} == 1){
         $words = tokenize($words);
     }
     
+    if ($options{"doRemoveDigits"} == 1){
+        $words = removeDigits($words);
+    }
+
     if ($options{"doLowerCase"} == 1){
         $words = lc($words);
     }
@@ -389,12 +413,14 @@ sub extractWords{
 =cut
 sub getComments{
     my $fileName = shift;
-    my $wordsOut = "";
+    my $wordsIn = "";
     my $numRemoved = 0;
 
-    $wordsOut = `xscc.awk extract=comment prune=copyright $fileName`;
-    $wordsOut = removePunctuation($wordsOut);
-    (my $dummy, $wordsOut) = removeStopwords($wordsOut, \%stopwordsKeywords);
+    #$wordsOut = `xscc.awk extract=comment prune=copyright $fileName`;
+    $wordsIn = read_file($fileName) ;
+    # Find all matches of comments, and put them into @arr
+    my @arr = $wordsIn =~  m/$RE{comment}{Java}/g;
+    my $wordsOut = join(" ", @arr);
 
     return (getNumWords($wordsOut), removeDuplicateSpaces($wordsOut));
 }
@@ -411,14 +437,14 @@ sub getComments{
 =cut
 sub getIdentifiers{
     my $fileName = shift;
-    my $wordsOut = "";
+    my $wordsIn = "";
 
-    $wordsOut = `xscc.awk $fileName`;
+    $wordsIn = read_file($fileName) ;
+    # Remove all comments
+    # TODO: what about string literals?
+    $wordsIn =~ s/$RE{comment}{Java}//g;
 
-    $wordsOut = removePunctuation($wordsOut);
-    (my $dummy, $wordsOut) = removeStopwords($wordsOut, \%stopwordsKeywords);
-
-    return (getNumWords($wordsOut), $wordsOut);
+    return (getNumWords($wordsIn), $wordsIn);
 }
 
 =head2 stem
@@ -481,7 +507,7 @@ sub removeStopwords{
 
     # Make sure to lowercase the wordsIn, because the stopwords are themselves
     # lowercase.
-    for my $w (split / +/, lc($wordsIn)) {
+    for my $w (split /\s+/, lc($wordsIn)) {
         if (exists($stops->{$w})) {++$numRemoved}
         else {
             $wordsOut = "$wordsOut $w";
@@ -503,7 +529,7 @@ sub stemWords{
     my $wordsIn  = shift;
     my $wordsOut = "";
 
-    for my $w (split / +/, $wordsIn) {
+    for my $w (split /\s+/, $wordsIn) {
         $wordsOut = "$wordsOut ".stem($w);
     }
 
@@ -554,8 +580,7 @@ sub tokenize{
     my $wordsIn  = shift;
     my $wordsOut = "";
 
-    for my $w (split / +/, $wordsIn) {
-
+    for my $w (split /\s+/, $wordsIn) {
         # Split up camel case: aaA ==> aa A
         $w =~ s/([a-z]+)([A-Z])/$1 $2/g;
 
@@ -565,11 +590,8 @@ sub tokenize{
         # Split up underscores 
         $w =~ s/_/ /g;
 
-        # Remove punctionation, syntax stuff
-        $w = removePunctuation($w);
-
-        # Remove digits
-        $w =~ s/[0-9]//g;
+        # Split up dots
+        $w =~ s/([a-zA-Z0-9])\.+([a-zA-Z0-9])/$1 $2/g;
 
         $wordsOut = "$wordsOut $w";
     }
@@ -594,7 +616,7 @@ sub removeSmallWords{
     my $wordsOut = "";
 
     my $numRemoved = 0;
-    for my $w (split / +/, $wordsIn) {
+    for my $w (split /\s+/, $wordsIn) {
         if (length($w) > $length){
             $wordsOut = "$wordsOut $w";
         } else {
@@ -612,16 +634,16 @@ sub removeSmallWords{
           : Leaves words alone.
  Returns  : $wordsOut => string, the remaining words
  Args     : named arguments:
-          : $wordsIn => string, the white-space delimited words to process
+          : $inWords => string, the white-space delimited words to process
 =cut
 sub removeDuplicateSpaces{
-    my $wordsIn  = shift;
-    $wordsIn =~ s/\r/ /g;
-    $wordsIn =~ s/\n/ /g;
-    $wordsIn =~ s/\t/ /g;
-    $wordsIn =~ s/  +/ /g;
-    $wordsIn =~ s/^ +//g;
-    return $wordsIn;
+    my $inWords  = shift;
+    $inWords =~ s/\r/ /g;
+    $inWords =~ s/\n/ /g;
+    $inWords =~ s/\t/ /g;
+    $inWords =~ s/  +/ /g;
+    $inWords =~ s/^ +//g;
+    return $inWords;
 }
 
 
@@ -640,89 +662,107 @@ sub getNumWords{
 }
 
 
-=head2 removeEmailNoise
- Title    : removeEmailNoise
- Usage    : removeEmailNoise($inWords)
- Function : Performs common email preprocessing: removing signatures, ">"
-          : characters, URLs, email address, and "On X, Y wrote:
-          : Removes lines in emails like:
-          : On 2/14/07, Greg Marr <gregm@alum.wpi.edu> wrote:
-          : At 08:33 AM 2/14/2007, Garrett Rooney wrote:
- Returns  : $wordsOut => string, the number of words 
+=head2 removeEmailAddresses
+ Title    : removeAddresses
+ Usage    : removeAddresses($inWords)
+ Function : Removes email addresses, e.g., sthomas@cs.queensu.ca
+ Returns  : $wordsOut => string, the remaining words 
  Args     : named arguments:
-          : $inWords => string, the words to count
+          : $inWords => string, the white-space delimited words to process
 =cut
-# Removes lines in emails like:
-# On 2/14/07, Greg Marr <gregm@alum.wpi.edu> wrote:
-# At 08:33 AM 2/14/2007, Garrett Rooney wrote:
-# 
-# Also remove any email addresses or URLS
-sub removeEmailNoise{
-    my $in = shift;
-
-    # First, remove ">" operator to make life easier
-    $in =~ s/>+ ?//g;
-
-    # Multi-line wrotes
-    $in =~ s/On.*\n.*wrote://g;
-    $in =~ s/At.*\n.*wrote://g;
-
-    # Single line wrotes
-    $in =~ s/On .*wrote://g;
-    $in =~ s/At .*wrote://g;
-    $in =~ s/.*wrote://g;
-
-    # Remove URLS
-    $in =~ s/http\:.+\b//g;
-
-    # Remove email addresses
-    $in =~ s/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}//g;
-
-    # Remove old messages
-    $in =~ s/.*Original Message.*//g;
-    $in =~ s/From:.*//g;
-    $in =~ s/Sent:.*//g;
-    $in =~ s/To:.*//g;
-    $in =~ s/Cc:.*//g;
-    $in =~ s/Subject:.*//g;
-
-    # Remove Disclaimers messages
-    $in =~ s/DISCLAIMER.*//sg;
-    $in =~ s/CAUTION.*//sg;
-
-    # Remove Signatures: handles  2 cases (first up until two newlines):
-    #-- 
-    #BOYA SUN
-    #Computer Science Division
-    #Electrical Engineering & Computer Science Department
-    #513 Olin Building
-    #Case Western Reserve University
-    #10900 Euclid Avenue
-    #Cleveland, OH 44106
-    #
-    #
-    # > --
-    #> Nick Kew
-
-    $in =~ s/(>+ )?--\s*\n(.*\n?)*//g;
-
-    # Special cases for PSQL?
-    #$in =~ s/tom lane//ig;
-    #$in =~ s/\btom\b|bruce|andrew|gavin|zdenek|momjian|nick|merlin|alvaro|herrera//ig;
-    #$in =~ s/david|peter|pete|joshua|josh|drake|jim|berkus|gregory|greg|stark|stefan//ig;
-    #$in =~ s/heikki|michael|fournier|marc|simon|jose|hamlet|vince|kevin|karel|karen|mike//ig;
-    #$in =~ s/baccus|\bdon\b|robert||joseph|josef|\bjoe\b|neil|christopher|chris|\bbob\b|andrea|donb//ig;
-    #$in =~ s/afaict|afaik|imo|hmmm|fwiw|btw|brb|imho|fyi//ig;
-    #$in =~ s/kinda|yep|yessir|yeah|sure|till//ig;
-    #$in =~ s/hello|hiya|\bhi\b|heya|\bhey\b|\bdear\b//ig;
-    #$in =~ s/\bdon\b|\bnt\b|\bdo\b|\bnot\b|\bweren\b//ig;
-    #$in =~ s/xxx+//ig;  # From Unix directory listings
-    #$in =~ s/thanks|cheers|regards|bye|sincere?ly|best,//ig;
-    #$in =~ s/kirjutas|kell|kenal//ig;   # Some language?
-
-    return $in;
+sub removeEmailAddresses{
+    my $inWords = shift;
+    $inWords =~ s/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}//g;
+    return $inWords;
 }
 
+=head2 removeEmailSignatures
+ Title    : removeSignatures
+ Usage    : removeSignatures($inWords)
+ Function : Removes email signatures, for example:
+          : --
+          : Stephen W. Thomas, PhD
+          : "My favorite saying goes with every email I send!"
+ Returns  : $wordsOut => string, the remaining words 
+ Args     : named arguments:
+          : $inWords => string, the white-space delimited words to process
+=cut
+sub removeEmailSignatures{
+    my $inWords = shift;
+    $inWords =~ s/(>+ )?--\s*\n(.*\n?)*//g;
+    return $inWords;
+}
+
+=head2 removeURLs
+ Title    : removeURLs
+ Usage    : removeURLs($inWords)
+ Function : Removes URLS, e.g., http://www.something.com
+ Returns  : $wordsOut => string, the remaining words 
+ Args     : named arguments:
+          : $inWords => string, the white-space delimited words to process
+=cut
+sub removeURLs{
+    my $inWords = shift;
+    $inWords =~ s/http\:.+\b//g;
+    return $inWords
+}
+
+=head2 removeWroteLines
+ Title    : removeWroteLines
+ Usage    : removeWroteLines($inWords)
+ Function : Removes lines that have "On X, Y wrote:" (useful for emails)
+ Returns  : $wordsOut => string, the remaining words 
+ Args     : named arguments:
+          : $inWords => string, the white-space delimited words to process
+=cut
+sub removeWroteLines{
+    my $inWords = shift;
+    # Multi-line wrotes
+    $inWords =~ s/On.*\n.*wrote://g;
+    $inWords =~ s/At.*\n.*wrote://g;
+
+    # Single line wrotes
+    $inWords =~ s/On .*wrote://g;
+    $inWords =~ s/At .*wrote://g;
+    $inWords =~ s/.*wrote://g;
+    return $inWords
+}
+
+=head2 removeQuotedEmails
+ Title    : removeQuotedEmails
+ Usage    : removeQuotedEmails($inWords)
+ Function : Removes all lines beginning with " *>"
+ Returns  : $wordsOut => string, the remaining words 
+ Args     : named arguments:
+          : $inWords => string, the white-space delimited words to process
+=cut
+sub removeQuotedEmails{
+    my $inWords = shift;
+    $inWords =~ s/ *>.*//g;
+    return $inWords
+}
+
+=head2 removeEmailHeaders
+ Title    : removeEmailHeaders
+ Usage    : removeEmailHeaders($inWords)
+ Function : Removes all email headers that may be in the message
+ Returns  : $wordsOut => string, the remaining words 
+ Args     : named arguments:
+          : $inWords => string, the white-space delimited words to process
+=cut
+sub removeEmailHeaders{
+    my $inWords = shift;
+    $inWords =~ s/.*Original Message.*//g;
+    $inWords =~ s/From:.*//g;
+    $inWords =~ s/Sent:.*//g;
+    $inWords =~ s/To:.*//g;
+    $inWords =~ s/Cc:.*//g;
+    $inWords =~ s/Subject:.*//g;
+    # Remove Disclaimers messages
+    $inWords =~ s/DISCLAIMER.*//sg;
+    $inWords =~ s/CAUTION.*//sg;
+    return $inWords
+}
 
 
 =head2 buildStopwordTables
@@ -997,19 +1037,22 @@ doIdentifiers ==> 1
 doComments ==> 1
   If isCode==1, should the program include comments?
 
-doRemoveDigits ==> 1
+doRemoveDigits ==> 0
   Should the program remove digits [0-9]?
 
-doLowerCase ==> 1
+doLowerCase ==> 0
   Should the program create all lower case output?
 
-doStemming ==> 1
+doStemming ==> 0
   Should the program perform word stemming?
   Note that stemming==1 implies doLowerCase==1. 
 
-doTokenize ==> 1
+doTokenize ==> 0
   Should the program split identifier names, such as:
   camelCase, under_scores, dot.notation?
+
+doRemovePunctuation ==> 0
+  Should the program remove puncuation symbols?
 
 doRemoveSmallWords ==> 0
   Should the program remove small words?
@@ -1017,10 +1060,10 @@ doRemoveSmallWords ==> 0
 smallWordSize ==> 1
   If doRemoveSmallWords==1, what is the minumum size of words to keep?
 
-doStopwordsEnglish ==> 1
+doStopwordsEnglish ==> 0
   Should the program remove English stopwords?
 
-doStopwordsKeywords ==> 1
+doStopwordsKeywords ==> 0
   Should the program remove programming language keywords?
 
 doStopwordsCustom ==> 0
@@ -1029,8 +1072,23 @@ doStopwordsCustom ==> 0
 ref_stopwordsCustom ==> 0
   If doStopwordsCustom==1, what is the list (array reference). 
 
-doEmail ==> 0
-  Should the program remove common noise in emails?
+doRemoveEmailAddresses ==> 0
+  Should the program remove email addresses?
+
+doRemoveEmailSignatures ==> 0
+  Should the program remove email signatures?
+
+doRemoveURLs ==> 0
+  Should the program remove URLs?
+
+doRemoveWroteLines ==> 0
+  Should the program remove "On <date>, <person> wrote:" lines?
+
+doRemoveQuotedEmails ==> 0
+  Should the program remove quoted emails?
+
+doRemoveEmailHeaders ==> 0
+  Should the program remove email headers?
 
 
 
@@ -1058,3 +1116,4 @@ at your option, any later version of Perl 5 you may have available.
 
 
 =cut
+

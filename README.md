@@ -57,19 +57,22 @@ doIdentifiers ==> 1
 doComments ==> 1
   If isCode==1, should the program include comments?
 
-doRemoveDigits ==> 1
+doRemoveDigits ==> 0
   Should the program remove digits [0-9]?
 
-doLowerCase ==> 1
+doLowerCase ==> 0
   Should the program create all lower case output?
 
-doStemming ==> 1
+doStemming ==> 0
   Should the program perform word stemming?
   Note that stemming==1 implies doLowerCase==1. 
 
-doTokenize ==> 1
+doTokenize ==> 0
   Should the program split identifier names, such as:
   camelCase, under_scores, dot.notation?
+
+doRemovePunctuation ==> 0
+  Should the program remove puncuation symbols?
 
 doRemoveSmallWords ==> 0
   Should the program remove small words?
@@ -77,10 +80,10 @@ doRemoveSmallWords ==> 0
 smallWordSize ==> 1
   If doRemoveSmallWords==1, what is the minumum size of words to keep?
 
-doStopwordsEnglish ==> 1
+doStopwordsEnglish ==> 0
   Should the program remove English stopwords?
 
-doStopwordsKeywords ==> 1
+doStopwordsKeywords ==> 0
   Should the program remove programming language keywords?
 
 doStopwordsCustom ==> 0
@@ -89,8 +92,23 @@ doStopwordsCustom ==> 0
 ref_stopwordsCustom ==> 0
   If doStopwordsCustom==1, what is the list (array reference). 
 
-doEmail ==> 0
-  Should the program remove common noise in emails?
+doRemoveEmailAddresses ==> 0
+  Should the program remove email addresses?
+
+doRemoveEmailSignatures ==> 0
+  Should the program remove email signatures?
+
+doRemoveURLs ==> 0
+  Should the program remove URLs?
+
+doRemoveWroteLines ==> 0
+  Should the program remove "On <date>, <person> wrote:" lines?
+
+doRemoveQuotedEmails ==> 0
+  Should the program remove quoted emails?
+
+doRemoveEmailHeaders ==> 0
+  Should the program remove email headers?
 
 
 USAGE

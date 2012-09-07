@@ -14,14 +14,7 @@ $preprocessor->setOption("logLevel", "error");
 $preprocessor->setOption("inPath", "t/in/test2");
 $preprocessor->setOption("outPath", "t/out/test2");
 $preprocessor->setOption("isCode", 0);
-$preprocessor->setOption("doTokenize", 0);
 $preprocessor->setOption("doStemming", 1);
-$preprocessor->setOption("doLowerCase", 0);
-$preprocessor->setOption("doStopwordsEnglish", 0);
-$preprocessor->setOption("doStopwordsKeywords", 0);
-$preprocessor->setOption("doStopwordsCustom", 0);
-$preprocessor->setOption("doStopPhrases", 0);
-$preprocessor->setOption("doEmail", 0);
 
 $preprocessor->preprocess();
 

@@ -19,12 +19,3 @@ with
 inside
 foo
 bar
-these
-comments
-should
-be
-kept
-what
-about
-keywords
-like

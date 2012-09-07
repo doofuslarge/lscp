@@ -16,12 +16,10 @@ $preprocessor->setOption("outPath", "t/out/test4");
 $preprocessor->setOption("isCode", 0);
 $preprocessor->setOption("doTokenize", 0);
 $preprocessor->setOption("doStemming", 0);
-$preprocessor->setOption("doLowerCase", 0);
+$preprocessor->setOption("doRemovePunctuation", 1);
+$preprocessor->setOption("doRemoveDigits", 1);
 $preprocessor->setOption("doStopwordsEnglish", 1);
-$preprocessor->setOption("doStopwordsKeywords", 0);
-$preprocessor->setOption("doStopwordsCustom", 0);
-$preprocessor->setOption("doStopPhrases", 0);
-$preprocessor->setOption("doEmail", 0);
+$preprocessor->setOption("doLowerCase", 1);
 
 $preprocessor->preprocess();
 

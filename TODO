@@ -11,4 +11,5 @@ FEATURE ENHANCEMENTS
 - Detect and handle contractions (isn't, it's, didn't) better.
 - Split up keyword stopwords by programming language, and auto-detect which to
   use
+- Stopwords implies lowercase; remove this implication
 
