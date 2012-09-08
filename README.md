@@ -4,7 +4,7 @@ lscp version 0.01
 AUTHOR
 ------
 
-[Stephen W. Thomas](http://research.cs.queensu.ca/~sthomas/) <sthomas@cs.queensu.ca> 
+[Stephen W. Thomas](http://research.cs.queensu.ca/~sthomas/) <<sthomas@cs.queensu.ca>>
 
 
 DESCRIPTION
@@ -25,13 +25,13 @@ lscp was developed with the following goals:
   * Not parsing the source code. Instead, we rely on heuristics to
     isolate identifier names, comments, and string literals, and discard the rest.
   * Using multiple threads, so that I/O and CPU can be maximized concurrently.
-  * Using File::Slurp module for fast I/O times.
+  * Using the `File::Slurp` module for fast I/O times.
  
 * Flexibility. We need to support a wide range of preprocessing options and steps. 
   (See below for a full list of supported options.)
 
 * Simplicity. We need the code to be straightforward and easy to extend, because
-  we're always changing things.
+  we're always adding and changing things.
 
 lscp can also be used to preprocess other document kinds, such as bug reports
 and emails. See the options below.
@@ -39,7 +39,7 @@ and emails. See the options below.
 ### Implementation
 
 lscp is implemented in Perl. Perl is well-suited for this sort of task:
-regular expressions, text parsing, data manipulation, and reading files. 
+regular expressions, text parsing, data manipulation, reading files, etc. 
 Plus, the source code is easy to read (if you know Perl) and extend, 
 perfect for research and practioners who need to extend the functionality of
 lscp.

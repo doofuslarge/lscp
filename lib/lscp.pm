@@ -178,7 +178,8 @@ sub preprocess{
        
 
     # Spawn threads, each with its own range of ids into the @FILE array
-    # Each thread will return an array of #TODO
+    # Each thread will return an array of log lines (strings ending with"\n")
+    # that we can gather into a big "@all_info" array, to print later.
     my @threads;
     my $numFilesEach = ceil($numFiles/$options{"numberOfThreads"});
     for (my $count = 1; $count <= $options{"numberOfThreads"}; $count++) {
@@ -444,7 +445,7 @@ sub getIdentifiers{
 
     $wordsIn = read_file($fileName) ;
     # Remove all comments
-    # TODO: what about string literals?
+    # TODO: what about string literals? Don't want to include those here.
     $wordsIn =~ s/$RE{comment}{Java}//g;
 
     return (getNumWords($wordsIn), $wordsIn);
