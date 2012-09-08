@@ -1,6 +1,5 @@
 Revision history for Perl extension lscp.
 
 0.01  Thu Sep  6 14:09:22 2012
-	- original version; created by h2xs 1.23 with options
-		-X -n lscp
+	- original version
 
