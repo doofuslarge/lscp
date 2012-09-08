@@ -16,9 +16,12 @@ lscp can be used to isolate the linguistic data
 (i.e., identifier names, comments, and string literals) from source code files.
 This is useful, for example, for building IR models on source code.
 
+
+### Design Goals
+
 lscp was developed with the following goals:
 
-* Speed. We need to process millions of files in no time. We achieve this by:
+* Speed. Our goal is to process millions of input files in little time. We achieve this by:
   * Not parsing the source code. Instead, we rely on heuristics to
     isolate identifier names, comments, and string literals, and discard the rest.
   * Using multiple threads, so that I/O and CPU can be maximized concurrently.
@@ -33,10 +36,15 @@ lscp was developed with the following goals:
 lscp can also be used to preprocess other document kinds, such as bug reports
 and emails. See the options below.
 
-lscp is implemented in Perl, because Perl is well-suited for this sort of task.
-Regular expressions, text parsing, reading files? EASY and FAST for the
-programmer. Yes, a small performance hit; but we will make that sacrafice for
-readable and editible code. 
+### Implementation
+
+lscp is implemented in Perl. Perl is well-suited for this sort of task:
+regular expressions, text parsing, data manipulation, and reading files. 
+Plus, the source code is easy to read (if you know Perl) and extend, 
+perfect for research and practioners who need to extend the functionality of
+lscp.
+
+### Preprocessing Options
 
 Here is the list of preprocessing options, and their defaults. These are all set
 via the `setOptions(optionName, newValue)` subroutine.
