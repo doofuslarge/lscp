@@ -16,6 +16,7 @@ $preprocessor->setOption("outPath", "t/out/test0");
 
 $preprocessor->setOption("isCode", 1);
 $preprocessor->setOption("doIdentifiers", 1);
+$preprocessor->setOption("doStringLiterals", 1);
 $preprocessor->setOption("doComments", 0);
 $preprocessor->setOption("doTokenize", 0);
 $preprocessor->setOption("doStemming", 0);

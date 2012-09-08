@@ -67,6 +67,7 @@ sub new{
 
     $options{"isCode"}              = 1;
     $options{"doIdentifiers"}       = 1;
+    $options{"doStringLiterals"}    = 1;
     $options{"doComments"}          = 1;
 
     $options{"doRemoveDigits"}      = 0;
@@ -324,6 +325,8 @@ sub extractWords{
             ($numIdentifiers, my $newWords) = getIdentifiers($inFilePath);
             $words = "$words $newWords";
         }
+        
+        # TODO: string literals
     
         if ($options{"doComments"} == 1){
             ($numComments, my $newWords) = getComments($inFilePath);
@@ -352,7 +355,7 @@ sub extractWords{
     }
 
     if ($options{"doRemoveEmailHeaders"} == 1){
-        $words = removeRemoveEmailHaders($words);
+        $words = removeEmailHeaders($words);
     }
 
     if ($options{"doRemovePunctuation"} == 1){
@@ -703,7 +706,7 @@ sub removeEmailSignatures{
 =cut
 sub removeURLs{
     my $inWords = shift;
-    $inWords =~ s/http\:.+\b//g;
+    $inWords =~ s|http\://\S+\b||g;
     return $inWords
 }
 
@@ -753,14 +756,15 @@ sub removeQuotedEmails{
 sub removeEmailHeaders{
     my $inWords = shift;
     $inWords =~ s/.*Original Message.*//g;
-    $inWords =~ s/From:.*//g;
-    $inWords =~ s/Sent:.*//g;
-    $inWords =~ s/To:.*//g;
-    $inWords =~ s/Cc:.*//g;
-    $inWords =~ s/Subject:.*//g;
+    $inWords =~ s/^\s*From:.*//mig;
+    $inWords =~ s/^\s*Sent:.*//mig;
+    $inWords =~ s/^\s*To:.*//mig;
+    $inWords =~ s/^\s*Cc:.*//mig;
+    $inWords =~ s/^\s*Bcc:.*//mig;
+    $inWords =~ s/^\s*Subject:.*//mig;
     # Remove Disclaimers messages
-    $inWords =~ s/DISCLAIMER.*//sg;
-    $inWords =~ s/CAUTION.*//sg;
+    $inWords =~ s/^\s*DISCLAIMER.*//mig;
+    $inWords =~ s/^\s*CAUTION.*//mig;
     return $inWords
 }
 
@@ -990,24 +994,34 @@ lscp - Lightweight source code preprocesser
 
 =head1 DESCRIPTION
 
-lscp is a lightweight source code preprocessor, to isolate the linguistic data
-(i.e., identifier names, comments, and string literals) from source code files,
-which is useful for building IR models. 
+lscp is a lightweight source code preprocessor, used to isolate the linguistic data
+(i.e., identifier names, comments, and string literals) from source code files.
+This is useful, for example, for building IR models on source code. 
 
 lscp was developed with the following goals:
 
-- Speed. It does not parse the source code. Instead, it relies on heuristics to
-  isolate identifier names, comments, and string literals, and discard the rest.
-  Further, it can run in a multi-threaded mode to increase throughput. 
+- Speed. We need to process millions of files in no time. We achieve this by:
+  - Not parsing the source code. Instead, we rely on heuristics to
+    isolate identifier names, comments, and string literals, and discard the rest.
+  - Using multiple threads, so that I/O and CPU can be maximized concurrently.
+  - Using File::Slurp module for fast I/O times.
+ 
+- Flexibility. We need to support a wide range of preprocessing options and steps. 
+  (See below for a full list of supported options.)
 
-- Flexibility. It can support a range of preprocessing options and steps. (See below.)
-
-- Simplicity. The code is straightforward and hence easy to extend.
+- Simplicity. We need the code to be straightforward and easy to extend, because
+  we're always changing things.
 
 lscp can also be used to preprocess other document kinds, such as bug reports
-and emails. 
+and emails. See the options below.
 
-List of options, and their defaults:
+lscp is implemented in Perl, because Perl is well-suited for this sort of task.
+Regular expressions, text parsing, reading files? EASY and FAST for the
+programmer. Yes, a small performance hit; but we will make that sacrafice for
+readable and editible code. 
+
+Here is the list of preprocessing options, and their defaults. These are all set
+via the setOptions(optionName, newValue) subroutine.
 
 inPath ==> "./in" 
   The directory containing the input files.
@@ -1033,6 +1047,9 @@ isCode ==> 1
 
 doIdentifiers ==> 1
   If isCode==1, should the program include identifier names?
+
+doStringLiterals ==> 1
+  If isCode==1, should the program include string literals?
 
 doComments ==> 1
   If isCode==1, should the program include comments?
