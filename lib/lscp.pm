@@ -511,8 +511,8 @@ sub removeStopwords{
 
     # Make sure to lowercase the wordsIn, because the stopwords are themselves
     # lowercase.
-    for my $w (split /\s+/, lc($wordsIn)) {
-        if (exists($stops->{$w})) {++$numRemoved}
+    for my $w (split /\s+/, $wordsIn) {
+        if (exists($stops->{lc($w)})) {++$numRemoved}
         else {
             $wordsOut = "$wordsOut $w";
         }
