@@ -7,12 +7,12 @@ use File::Basename;
 use File::Find;
 use File::Slurp;
 use Lingua::Stem;
+use Regexp::Common qw /comment/;
 use FindBin;
 use POSIX qw/ceil/;
 use threads;
 use threads::shared;
 use Log::Log4perl qw(:easy);
-use Regexp::Common qw /comment/;
 
 require Exporter;
 use AutoLoader qw(AUTOLOAD);
@@ -542,8 +542,8 @@ sub removeStopwords{
 
     # Make sure to lowercase the wordsIn, because the stopwords are themselves
     # lowercase.
-    for my $w (split /\s+/, lc($wordsIn)) {
-        if (exists($stops->{$w})) {++$numRemoved}
+    for my $w (split /\s+/, $wordsIn) {
+        if (exists($stops->{lc($w)})) {++$numRemoved}
         else {
             $wordsOut = "$wordsOut $w";
         }

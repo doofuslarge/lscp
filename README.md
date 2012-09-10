@@ -200,7 +200,7 @@ This module requires these other modules and libraries:
     Lingua::Stem
     FindBin
     Log::Log4perl qw(:easy)
-    Regexp::Common::URI
+    Test::Files
 
 Easily install these on your system with:
 
