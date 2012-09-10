@@ -31,6 +31,9 @@ my %options;
 my %stopwordsEnglish;
 my %stopwordsKeywords;
 
+# Will hold the contractions, for faster lookup later
+my %contractions;
+
 # Holds all the files names in the input directory
 my @FILES;
 
@@ -77,6 +80,7 @@ sub new{
     $options{"doRemovePunctuation"} = 0;
     $options{"doRemoveSmallWords"}  = 0;
     $options{"smallWordSize"}       = 1;
+    $options{"doExpandContractions"}= 0;
 
     $options{"doStopwordsEnglish"}  = 0;
     $options{"doStopwordsKeywords"} = 0;
@@ -92,6 +96,9 @@ sub new{
 
     # Define and build hash tables of stopwords, for speed later
     buildStopwordTables();
+
+    # Define and build hash tables of stopwords, for speed later
+    buildContractionTable();
 
     # Initialze the logger
     Log::Log4perl->easy_init($ERROR);
@@ -335,6 +342,10 @@ sub extractWords{
         }
     }
 
+    if ($options{"doExpandContractions"} == 1){
+        $words = expandContractions($words);
+    }
+
     if ($options{"doRemoveEmailAddresses"} == 1){
         $words = removeEmailAddresses($words);
     }
@@ -466,6 +477,26 @@ sub stem {
 }
 
 
+=head2 expandContractions
+ Title    : expandContractions
+ Usage    : expandContractions($wordsIn)
+ Function : Expands common English-language contractions, e.g., "he's" -> "he is"
+ Returns  : $wordsOut => string, the resulting words from $wordsIn
+ Args     : named arguments:
+          : $wordsIn => string, the white-space delimited words to process
+=cut
+sub expandContractions{
+    my $wordsIn = shift;
+
+    # Just loop through our list of contractions, and do the replacements.
+    my $wordsOut = $wordsIn;
+    foreach my $contr (keys %contractions){
+        my $expanded = $contractions{$contr};
+        $wordsOut =~ s/\b$contr\b/$expanded/ig;
+    }
+
+    return removeDuplicateSpaces($wordsOut);
+}
 
 
 =head2 removeStopwordsCustom
@@ -860,6 +891,97 @@ sub buildStopwordTables{
     foreach my $w (@keywords){
         $stopwordsKeywords{$w} = 1;
     }   
+}
+
+
+=head2 buildContractionTable
+ Title    : buildContractionTable
+ Usage    : buildContractionTable()
+ Function : Defines and builds a hash table of English-language contractions.
+ Returns  : none.
+ Args     : named arguments:
+          : none.
+=cut
+sub buildContractionTable{
+
+    # Note: this list is incomplete, and we could do better with an algorithm
+    # approach. For example something like "Steve's gone to the conference"
+    # won't be caught by such a list; we need something more sophisticated.
+
+    # English list borrowed from wikipedia:
+    # http://en.wikipedia.org/wiki/Wikipedia:List_of_English_contractions
+    $contractions{"ain\'t"} = "is not";
+    $contractions{"aren\'t"} = "are not";
+    $contractions{"can\'t"} = "cannot";
+    $contractions{"\'cause"} = "because";
+    $contractions{"couldn\'t"} = "could not";
+    $contractions{"didn\'t"} = "did not";
+    $contractions{"doesn\'t"} = "does not";
+    $contractions{"don\'t"} = "do not";
+    $contractions{"hadn\'t"} = "had not";
+    $contractions{"hasn\'t"} = "has not";
+    $contractions{"haven\'t"} = "have not";
+    $contractions{"he\'d"} = "he had";
+    $contractions{"he\'ll"} = "he will";
+    $contractions{"he\'s"} = "he is";
+    $contractions{"how\'s"} = "how is";
+    $contractions{"I\'d"} = "I had";
+    $contractions{"I\'ll"} = "I will";
+    $contractions{"I\'m"} = "I am";
+    $contractions{"I\'ve"} = "I have";
+    $contractions{"isn\'t"} = "is not";
+    $contractions{"it\'d"} = "it had";
+    $contractions{"it\'l."} = "it will";
+    $contractions{"it\'s"} = "it has";
+    $contractions{"let\'s"} = "let us";
+    $contractions{"ma\'a"} = "madam";
+    $contractions{"might\'ve"} = "might have";
+    $contractions{"mightn\'t"} = "might not";
+    $contractions{"must\'ve"} = "must have";
+    $contractions{"mustn\'t"} = "must not";
+    $contractions{"o\'clock"} = "of the clock";
+    $contractions{"oughtn\'t"} = "ought not";
+    $contractions{"shan\'t"} = "shall not";
+    $contractions{"she\'d"} = "she had";
+    $contractions{"she\'ll"} = "she will";
+    $contractions{"she\'s"} = "she is";
+    $contractions{"should\'ve"} = "should have";
+    $contractions{"shouldn\'t"} = "should not";
+    $contractions{"so\'s"} = "so as";
+    $contractions{"that\'s"} = "that that is";
+    $contractions{"there\'d"} = "there had";
+    $contractions{"there\'s"} = "there is";
+    $contractions{"they\'d"} = "they had";
+    $contractions{"they\'ll"} = "they will";
+    $contractions{"they\'re"} = "they are";
+    $contractions{"they\'ve"} = "they have";
+    $contractions{"wasn\'t"} = "was not";
+    $contractions{"we\'d"} = "we had";
+    $contractions{"we\'ll"} = "we will";
+    $contractions{"we\'re"} = "we are";
+    $contractions{"we\'ve"} = "we have";
+    $contractions{"weren\'t"} = "were not";
+    $contractions{"what\'ll"} = "what will";
+    $contractions{"what\'re"} = "what are";
+    $contractions{"what\'s"} = "what is";
+    $contractions{"what\'ve"} = "what have";
+    $contractions{"when\'s"} = "when is";
+    $contractions{"when\'ve"} = "when have";
+    $contractions{"where\'d"} = "where did";
+    $contractions{"where\'s"} = "where is";
+    $contractions{"where\'ve"} = "where have";
+    $contractions{"who\'ll"} = "who will";
+    $contractions{"who\'s"} = "who is";
+    $contractions{"who\'ve"} = "who have";
+    $contractions{"why\'s"} = "why is";
+    $contractions{"will\'ve"} = "will have";
+    $contractions{"won\'t"} = "will not";
+    $contractions{"would\'ve"} = "would have";
+    $contractions{"wouldn\'t"} = "would not";
+    $contractions{"you\'d"} = "you would";
+    $contractions{"you\'ll"} = "you will";
+    $contractions{"you\'re"} = "you are";
+    $contractions{"you\'ve"} = "you have";
 }
 
 
