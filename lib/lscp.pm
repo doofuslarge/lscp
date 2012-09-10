@@ -12,7 +12,6 @@ use POSIX qw/ceil/;
 use threads;
 use threads::shared;
 use Log::Log4perl qw(:easy);
-use Regexp::Common qw /comment/;
 
 require Exporter;
 use AutoLoader qw(AUTOLOAD);
