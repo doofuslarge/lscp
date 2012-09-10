@@ -7,6 +7,7 @@ use File::Basename;
 use File::Find;
 use File::Slurp;
 use Lingua::Stem;
+use Regexp::Common qw /comment/;
 use FindBin;
 use POSIX qw/ceil/;
 use threads;
