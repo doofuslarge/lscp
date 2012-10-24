@@ -12,7 +12,7 @@ DESCRIPTION
 
 lscp: A lightweight source code preprocesser
 
-lscp can be used to isolate the linguistic data
+lscp can be used to isolate and manipulate the linguistic data
 (i.e., identifier names, comments, and string literals) from source code files.
 This is useful, for example, for building IR models on source code.
 
