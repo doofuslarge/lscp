@@ -258,6 +258,8 @@ sub addFileToArray {
             }
         }
     }
+    # Finally, if we've made it this far, add the file to the FILES list that
+    # we'll use later.
     if($includeFile==1) {
         $FILES[$fileCounter] = $fileFull;
         $fileCounter++;
