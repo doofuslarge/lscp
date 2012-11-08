@@ -1,2 +1,0 @@
-0, t/in/test11/file1.txt, 13, 0, 0, 8, 0
-1, t/in/test11/file2.txt, 26, 0, 0, 22, 0

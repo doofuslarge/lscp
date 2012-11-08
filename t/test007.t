@@ -11,8 +11,8 @@ use Test::Files;
 my $preprocessor = lscp->new;
 
 $preprocessor->setOption("logLevel", "error");
-$preprocessor->setOption("inPath", "t/in/test7");
-$preprocessor->setOption("outPath", "t/out/test7");
+$preprocessor->setOption("inPath", "t/in/test007");
+$preprocessor->setOption("outPath", "t/out/test007");
 
 $preprocessor->setOption("isCode", 0);
 $preprocessor->setOption("doLowerCase", 1);
@@ -23,4 +23,4 @@ $preprocessor->setOption("ref_stopwordsCustom", \@stopphrases);
 
 $preprocessor->preprocess();
 
-compare_ok("t/out/test7/file1.txt", "t/oracle/test7/file1.txt", "file1.txt contents");
+compare_ok("t/out/test007/file1.txt", "t/oracle/test007/file1.txt", "file1.txt contents");

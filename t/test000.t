@@ -11,8 +11,8 @@ use Test::Files;
 my $preprocessor = lscp->new;
 
 $preprocessor->setOption("logLevel", "error");
-$preprocessor->setOption("inPath", "t/in/test0");
-$preprocessor->setOption("outPath", "t/out/test0");
+$preprocessor->setOption("inPath", "t/in/test000");
+$preprocessor->setOption("outPath", "t/out/test000");
 
 $preprocessor->setOption("isCode", 1);
 $preprocessor->setOption("doIdentifiers", 1);
@@ -27,4 +27,4 @@ $preprocessor->setOption("doLowerCase", 1);
 
 $preprocessor->preprocess();
 
-compare_ok("t/out/test0/file1.java", "t/oracle/test0/file1.java", "file1.java contents");
+compare_ok("t/out/test000/file1.java", "t/oracle/test000/file1.java", "file1.java contents");

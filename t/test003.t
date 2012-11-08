@@ -11,8 +11,8 @@ use Test::Files;
 my $preprocessor = lscp->new;
 
 $preprocessor->setOption("logLevel", "error");
-$preprocessor->setOption("inPath", "t/in/test3");
-$preprocessor->setOption("outPath", "t/out/test3");
+$preprocessor->setOption("inPath", "t/in/test003");
+$preprocessor->setOption("outPath", "t/out/test003");
 $preprocessor->setOption("isCode", 0);
 $preprocessor->setOption("doTokenize", 1);
 $preprocessor->setOption("doStemming", 0);
@@ -25,4 +25,4 @@ $preprocessor->setOption("doEmail", 0);
 
 $preprocessor->preprocess();
 
-compare_ok("t/out/test3/file1.txt", "t/oracle/test3/file1.txt", "file1.txt contents");
+compare_ok("t/out/test003/file1.txt", "t/oracle/test003/file1.txt", "file1.txt contents");

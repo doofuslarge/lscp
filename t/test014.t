@@ -11,12 +11,12 @@ use Test::Files;
 my $preprocessor = lscp->new;
 
 $preprocessor->setOption("logLevel", "error");
-$preprocessor->setOption("inPath", "t/in/test14");
-$preprocessor->setOption("outPath", "t/out/test14");
+$preprocessor->setOption("inPath", "t/in/test014");
+$preprocessor->setOption("outPath", "t/out/test014");
 
 $preprocessor->setOption("isCode", 0);
 $preprocessor->setOption("doRemoveWroteLines", 1);
 
 $preprocessor->preprocess();
 
-compare_ok("t/out/test14/file1.txt", "t/oracle/test14/file1.txt", "file1.txt contents");
+compare_ok("t/out/test014/file1.txt", "t/oracle/test014/file1.txt", "file1.txt contents");
