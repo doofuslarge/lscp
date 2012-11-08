@@ -94,6 +94,8 @@ sub new{
     $options{"doRemoveQuotedEmails"}     = 0;
     $options{"doRemoveEmailHeaders"}     = 0;
 
+    $options{"fileExtensions"}= "";
+
     # Define and build hash tables of stopwords, for speed later
     buildStopwordTables();
 
@@ -237,8 +239,29 @@ sub preprocess{
 sub addFileToArray {
     my $fileFull = $File::Find::name;
     return if (-d $fileFull);
-    $FILES[$fileCounter] = $fileFull;
-    $fileCounter++;
+
+    my $extension= lc($options{"fileExtensions"});
+    chomp $extension;
+   
+    # Only include the file if it has an "approved" file extension 
+    # (If fileExtensions is blank, include all files)
+    my $includeFile=0;
+    if($extension eq ""){
+        $includeFile=1;
+    } else {
+        my @extentions=split(" ", $extension);
+        foreach(@extentions){
+            chomp $_;
+            next if($_ eq "");
+            if(lc($fileFull) =~/\.$_$/){
+                $includeFile=1;
+            }
+        }
+    }
+    if($includeFile==1) {
+        $FILES[$fileCounter] = $fileFull;
+        $fileCounter++;
+    }
 }
 
 
