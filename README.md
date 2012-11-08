@@ -133,6 +133,10 @@ Should the program remove quoted emails?
     doRemoveEmailHeaders ==> 0
 Should the program remove email headers?
 
+    fileExtentions ==> ""
+Which file extentions should be considered? If blank, consider all. Otherwise,
+consider all in the list. (E.g.: "h cpp c java")
+
 
 USAGE
 -----
