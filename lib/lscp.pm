@@ -50,7 +50,7 @@ my $logger;
 =head2 new
  Title    : new
  Usage    : my $results = $lscp=>new()
- Function : creates a lcsp obejct, with default option values
+ Function : creates a lcsp object, with default option values
  Returns  : reference to a lscp object
  Args     : named arguments:
           : none.
@@ -645,8 +645,9 @@ sub tokenize{
         # Split up camel case: aaA ==> aa A
         $w =~ s/([a-z]+)([A-Z])/$1 $2/g;
 
-        # Split up camel case: AAa ==> AA a
-        $w =~ s/([A-Z]{2,100})([a-z]+)/$1 $2/g;
+        # Split up camel case: AAa ==> A Aa
+        # Split up camel case: AAAAa ==> AAA Aa
+        $w =~ s/([A-Z]{1,100})([A-Z])([a-z]+)/$1 $2$3/g;
 
         # Split up underscores 
         $w =~ s/_/ /g;

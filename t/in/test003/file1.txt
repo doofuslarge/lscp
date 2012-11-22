@@ -10,5 +10,5 @@ camelCaseAndUnder_score
 dot.notation
 long.dot.notation
 double..dot
-BIGsmall
+BIGSmall
 smallBIG

@@ -1,0 +1,5 @@
+blib
+Makefile*
+MYMETA*
+t/out/*/*
+pm_to_blib

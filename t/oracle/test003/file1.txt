@@ -31,6 +31,6 @@ notation
 double
 dot
 BIG
-small
+Small
 small
 BIG
