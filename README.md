@@ -133,6 +133,13 @@ Should the program remove quoted emails?
     doRemoveEmailHeaders ==> 0
 Should the program remove email headers?
 
+    doRemoveCodeTags ==> 0
+Should the program remove all `<code>...</code>` tags?
+
+    doRemoveCodeTags ==> 0
+Should the program remove all HTML tags? (But not the text between opening and closing tags?)
+
+
     fileExtentions ==> ""
 Which file extentions should be considered? If blank, consider all. Otherwise,
 consider all in the list. (E.g.: "h cpp c java")
