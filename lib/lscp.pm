@@ -523,7 +523,7 @@ sub removeCodeTags{
     my $wordsIn = shift;
 
     my $wordsOut = $wordsIn;
-    $wordsOut =~ s|<code[^>]*>[^X]*</code>||isg;
+    $wordsOut =~ s|<code[^>]*>((?:(?!</code>).)*)</code>||isg;
 
     return removeDuplicateSpaces($wordsOut);
 }
