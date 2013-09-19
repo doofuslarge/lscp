@@ -1,0 +1,17 @@
+Lots of text.
+
+<code>REMOVE ME</code>
+
+More text.
+
+<code>
+
+REMOVE ME TOO
+if lots of stuff in here
+
+foreach(i in t)
+
+</code>
+
+
+Final text.

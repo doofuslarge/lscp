@@ -1,0 +1,10 @@
+<p>It seems that what you are looking for is a something mildly challenging and somewhat useful to do with python? Try some of these things:</p>
+
+<p>Level 1:<br>
+Have you tried putting a GUI on top of a simple console program? There are several packages that allow you to do this with minimal effort. <a href="http://www.metaslash.com/python10/" rel="nofollow">Metaslash</a> Covers most all of them.</p>
+
+<p>Level 2:<br>
+<a href="http://code.google.com/codejam/contest" rel="nofollow">Google Code Jam</a>. The Competition itself is long underway, but you can still try the qualification round questions. Try doing them in python. They can be done with any amount of complexity you want, one, two, three files. Its a good way to learn to build algorithms in python. </p>
+
+<p>Level 3:<br>
+Write your own extension for something in python. I would try maybe a small scaling plugin for GIMP. Documentation can be found <a href="http://www.gimp.org/docs/python/index.html" rel="nofollow">here</a>. This will be pretty challenging, and provide you good experience to contributing to open source!</p>

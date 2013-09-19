@@ -97,6 +97,9 @@ sub new{
 
     $options{"fileExtensions"}= "";
 
+    $options{"doRemoveCodeTags"}= 0;
+    $options{"doRemoveHTMLTags"}= 0;
+
     # Define and build hash tables of stopwords, for speed later
     buildStopwordTables();
 
@@ -367,6 +370,12 @@ sub extractWords{
             $words = "$words $newWords";
         }
     }
+    if ($options{"doRemoveCodeTags"} == 1){
+        $words = removeCodeTags($words);
+    }
+    if ($options{"doRemoveHTMLTags"} == 1){
+        $words = removeHTMLTags($words);
+    }
 
     if ($options{"doExpandContractions"} == 1){
         $words = expandContractions($words);
@@ -502,6 +511,39 @@ sub stem {
     return $stemref->[0];
 }
 
+=head2 removeCodeTags
+ Title    : removeCodeTags
+ Usage    : removeCodeTags($wordsIn)
+ Function : Removes <code> HTML tags, and everything in between.
+ Returns  : $wordsOut => string, the resulting words from $wordsIn
+ Args     : named arguments:
+          : $wordsIn => string, the white-space delimited words to process
+=cut
+sub removeCodeTags{
+    my $wordsIn = shift;
+
+    my $wordsOut = $wordsIn;
+    $wordsOut =~ s|<code[^>]*>[^X]*</code>||isg;
+
+    return removeDuplicateSpaces($wordsOut);
+}
+
+=head2 removeHTMLTags
+ Title    : HTMLTags
+ Usage    : HTMLTags($wordsIn)
+ Function : Removes all HTML tags, but leaves what's in between
+ Returns  : $wordsOut => string, the resulting words from $wordsIn
+ Args     : named arguments:
+          : $wordsIn => string, the white-space delimited words to process
+=cut
+sub removeHTMLTags{
+    my $wordsIn = shift;
+
+    my $wordsOut = $wordsIn;
+    $wordsOut =~ s|<[^>]*>||isg;
+
+    return removeDuplicateSpaces($wordsOut);
+}
 
 =head2 expandContractions
  Title    : expandContractions
