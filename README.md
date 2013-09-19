@@ -136,8 +136,11 @@ Should the program remove email headers?
     doRemoveCodeTags ==> 0
 Should the program remove all `<code>...</code>` tags?
 
-    doRemoveCodeTags ==> 0
+    doRemoveHTMLTags ==> 0
 Should the program remove all HTML tags? (But not the text between opening and closing tags?)
+
+    doExandContractions ==> 0
+Should the program expand common English-language contractions, such as "I've" => "I have"?
 
 
     fileExtentions ==> ""
