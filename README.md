@@ -172,7 +172,7 @@ To install this module type the following:
 
 Or, if you need to install it to your local directory, type:
 
-    perl Makefile.PL PREFEX /usr/home/USERNAME/usr/local
+    perl Makefile.PL PREFIX /usr/home/USERNAME/usr/local
     make
     make test
     make install
@@ -203,12 +203,17 @@ This module requires these other modules and libraries:
     File::Slurp
     Lingua::Stem
     FindBin
-    Log::Log4perl qw(:easy)
+    Log::Log4perl
     Test::Files
+    Regexp::Common
 
 Easily install these on your system with:
 
     cpanm Module::Name
+    
+or
+
+    cpan Module::Name
 
 COPYRIGHT AND LICENCE
 ---------------------
