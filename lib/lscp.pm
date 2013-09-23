@@ -95,6 +95,8 @@ sub new{
     $options{"doRemoveQuotedEmails"}     = 0;
     $options{"doRemoveEmailHeaders"}     = 0;
 
+    $options{"doOutputOneWordPerLine"}   = 1;
+
     $options{"fileExtensions"}= "";
 
     $options{"doRemoveCodeTags"}= 0;
@@ -306,7 +308,9 @@ sub worker{
 
 
         #Output the document (use slurp for speed)
-        $words = join("\n", split(/\s+/,$words));
+        if ($options{"doOutputOneWordPerLine"} == 1){
+            $words = join("\n", split(/\s+/,$words));
+        }
         chomp $words;
         write_file($outPath, "$words\n");
 
