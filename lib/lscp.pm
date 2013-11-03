@@ -14,6 +14,7 @@ use POSIX qw/ceil/;
 use threads;
 use threads::shared;
 use Log::Log4perl qw(:easy);
+use XML::Entities;
 
 require Exporter;
 use AutoLoader qw(AUTOLOAD);
@@ -102,6 +103,9 @@ sub new{
     $options{"doRemoveCodeTags"}= 0;
     $options{"doRemoveHTMLTags"}= 0;
 
+    $options{"oneInputFile"}  = 0;
+    $options{"oneOutputFile"} = 0;
+
     # Define and build hash tables of stopwords, for speed later
     buildStopwordTables();
 
@@ -170,20 +174,22 @@ sub preprocess{
     if (! -e $options{"inPath"}){
        $logger->fatal("Directory \'$options{\"inPath\"}\' does not exist.\n");
     } 
-    if (! -d $options{"inPath"}){
+    if (! -d $options{"inPath"} && ($options{"oneInputFile"} == 0)){
        $logger->fatal("File \'$options{\"inPath\"}\' is not a directory.\n");
     } 
     if (! -r $options{"inPath"}){
-       $logger->fatal("Directory \'$options{\"inPath\"}\' is not readable.\n");
+       $logger->fatal("Path \'$options{\"inPath\"}\' is not readable.\n");
     } 
 
     # Check if output directory exists and is writable
-    if (! -e $options{"outPath"}){
-       mkdir $options{"outPath"};
-    } 
-    if (! -w $options{"outPath"}){
-       $logger->fatal("Directory \'$options{\"outPath\"}\' is not writable.\n");
-    } 
+    if ($options{"oneOutputFile"} == 0){
+        if (! -e $options{"outPath"} ){
+        mkdir $options{"outPath"};
+        } 
+        if (! -w $options{"outPath"}){
+        $logger->fatal("Path \'$options{\"outPath\"}\' is not writable.\n");
+        } 
+    }
 
     # Create an array of file names in the input directory
     $logger->info("Reading input directory and making list of files.\n");
@@ -300,19 +306,58 @@ sub worker{
         my $fileBase = basename($fileFull);
 
         # Full path to output file
-        my $outPath = "$options{\"outPath\"}/$fileBase";
 
-        (my $words, my $numWordsFinal, my $numComments, my $numIdentifiers, 
-                my $numStopwordsRemoved, my $numSmallWordsRemoved)
-            = extractWords($fileFull);
+        my $words =""; 
+        my $numWordsFinal; 
+        my $numComments; 
+        my $numIdentifiers;
+        my $numStopwordsRemoved; 
+        my $numSmallWordsRemoved;
 
+        if ($options{"oneInputFile"} == 0){
+            my $outPath = "$options{\"outPath\"}/$fileBase";
+            ($words, $numWordsFinal, $numComments, $numIdentifiers, 
+                    $numStopwordsRemoved, $numSmallWordsRemoved)
+                = extractWordsFromFile($fileFull);
 
-        #Output the document (use slurp for speed)
-        if ($options{"doOutputOneWordPerLine"} == 1){
-            $words = join("\n", split(/\s+/,$words));
+            #Output the document (use slurp for speed)
+            if ($options{"doOutputOneWordPerLine"} == 1){
+                $words = join("\n", split(/\s+/,$words));
+            }
+            chomp $words;
+            write_file($outPath, "$words\n");
+
+        } else {
+            my $outPath = $options{"outPath"};
+
+            # Note: this is a special hack for StackTopics. It assumes that the
+            # input will come in CSV form, where each line represents a file.
+            # Specifically, the 4th column of each line represents the
+            # XML-escaped text of the file; and the output after preprocessing
+            # should also be in CSV, with the same 4 initial columns, and the
+            # new preprocessed text in a new 5th column.
+
+            open(OUT, ">$outPath") or die ("Cannot open output file: \"$outPath\"");
+
+            open(IN, "<$fileFull") or die ("Cannot open input file: \"$fileFull\"");
+    
+            while(<IN>){
+                my @cols= split '\|' ;
+                my $wordsToPreprocess = $cols[3];
+                my $wordsTemp;
+                $wordsToPreprocess = XML::Entities::decode('all', $wordsToPreprocess);
+
+                ($wordsTemp, $numWordsFinal, $numComments, $numIdentifiers, 
+                        $numStopwordsRemoved, $numSmallWordsRemoved)
+                    = extractWords($wordsToPreprocess);
+
+                print OUT "$cols[0]|$cols[1]|$cols[2]|$cols[3]|$wordsTemp|\n";
+            }
+            close IN;
+            close OUT;
         }
-        chomp $words;
-        write_file($outPath, "$words\n");
+
+
 
         # Output some info on the document.
         # DEPRECATED
@@ -333,47 +378,67 @@ sub worker{
 }
 
 
-=head2 extractWords
- Title    : extractWords
- Usage    : extractWords($inFilePath)
+=head2 extractWordsFromFile
+ Title    : extractWordsFromFile
+ Usage    : extractWordsFromFile($inFilePath)
  Function : Extracts and preprocesses all the words from file '$inFilePath'
  Returns  : $words => string, The extract words.
  Args     : named arguments:
           : $inFilePath => string, the path of the input file to process
 =cut
-sub extractWords{
+sub extractWordsFromFile{
     my $inFilePath = shift;
 
-    # $words is a string that will hold the individual words in the file.
-    # Each preprocessing step takes $words as input, and overwrites $words as
-    # output. Thus, returning $words will return the final, parsed text.
-    # The actual words in $words will be seperated by a newline.
-    my $words  = "";
+    my $wordsToPreprocess  = "";
 
-    # Keep track of how many comments, identifiers, stopwords, etc. that we find
     my $numComments                 = 0;
     my $numIdentifiers              = 0;
-    my $numStopwordsRemoved         = 0;
-    my $numSmallWordsRemoved        = 0;
 
     # If we're not doing code, just grab all the words.
     if ($options{"isCode"} == 0){
-        $words = read_file($inFilePath) ;
+        $wordsToPreprocess = read_file($inFilePath) ;
 
     # If we are doing code, just grab identifiers and/or comments
     } else {
         if ($options{"doIdentifiers"} == 1){
             ($numIdentifiers, my $newWords) = getIdentifiers($inFilePath);
-            $words = "$words $newWords";
+            $wordsToPreprocess = "$wordsToPreprocess $newWords";
         }
         
         # TODO: string literals
     
         if ($options{"doComments"} == 1){
             ($numComments, my $newWords) = getComments($inFilePath);
-            $words = "$words $newWords";
+            $wordsToPreprocess = "$wordsToPreprocess $newWords";
         }
     }
+    return extractWords($wordsToPreprocess);
+
+}
+
+=head2 extractWords
+ Title    : extractWords
+ Usage    : extractWords($inWords)
+ Function : Extracts and preprocesses all the words in the input string
+ Returns  : $words => string, The extracted and preprocessed words.
+ Args     : named arguments:
+          : $inWords => string, the intput words to extract and preprocess
+            (i.e., the contents of a file)
+=cut
+sub extractWords{
+
+    # $words is a string that will hold the individual words in the file.
+    # Each preprocessing step takes $words as input, and overwrites $words as
+    # output. Thus, returning $words will return the final, parsed text.
+    # The actual words in $words will be seperated by a newline.
+    my $words = shift;
+
+    # Keep track of how many comments, identifiers, stopwords, etc. that we find
+    my $numComments                 = 0;
+    my $numIdentifiers              = 0;
+    my $numStopwordsRemoved         = 0;
+    my $numSmallWordsRemoved        = 0;
+    
     if ($options{"doRemoveCodeTags"} == 1){
         $words = removeCodeTags($words);
     }
