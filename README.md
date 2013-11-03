@@ -133,6 +133,16 @@ Should the program remove quoted emails?
     doRemoveEmailHeaders ==> 0
 Should the program remove email headers?
 
+    doRemoveCodeTags ==> 0
+Should the program remove all `<code>...</code>` tags?
+
+    doRemoveHTMLTags ==> 0
+Should the program remove all HTML tags? (But not the text between opening and closing tags?)
+
+    doExandContractions ==> 0
+Should the program expand common English-language contractions, such as "I've" => "I have"?
+
+
     fileExtentions ==> ""
 Which file extentions should be considered? If blank, consider all. Otherwise,
 consider all in the list. (E.g.: "h cpp c java")
@@ -172,7 +182,7 @@ To install this module type the following:
 
 Or, if you need to install it to your local directory, type:
 
-    perl Makefile.PL PREFEX /usr/home/USERNAME/usr/local
+    perl Makefile.PL PREFIX /usr/home/USERNAME/usr/local
     make
     make test
     make install
@@ -203,12 +213,17 @@ This module requires these other modules and libraries:
     File::Slurp
     Lingua::Stem
     FindBin
-    Log::Log4perl qw(:easy)
+    Log::Log4perl
     Test::Files
+    Regexp::Common
 
 Easily install these on your system with:
 
     cpanm Module::Name
+    
+or
+
+    cpan Module::Name
 
 COPYRIGHT AND LICENCE
 ---------------------
